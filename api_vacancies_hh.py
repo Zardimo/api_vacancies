@@ -2,7 +2,7 @@ import requests
 from itertools import count
 
 
-def found_vacancies(language):
+def unload_vacancies_hh(language):
     all_pages = []
     url = 'https://api.hh.ru/vacancies/'
     for page in count():
@@ -15,10 +15,10 @@ def found_vacancies(language):
             'only_with_salary' : 'true'
         }
         response = requests.get(url, params=params)
-        page_vac = response.json()
-        all_pages += page_vac['items']
-        if page >= page_vac['pages']:
-            all_pages.append(page_vac['found'])
+        vacancy_page = response.json()
+        all_pages += vacancy_page['items']
+        if page >= vacancy_page['pages']:
+            all_pages.append(vacancy_page['found'])
             break
     found = response.json()['found']
     return [all_pages, found]
@@ -27,43 +27,43 @@ def found_vacancies(language):
 def get_salary_RUR_hh(vacancies):
     salary = 0
     non_RUR = 0
-    for lang in vacancies:
+    for payment in vacancies:
         try:
-            if lang['salary']['currency'] == 'RUR':
-                if lang['salary']['to'] and lang['salary']['from']:
-                    salary += (lang['salary']['to'] + lang['salary']['from'])/2
-                elif not lang['salary']['to']:
-                    salary += lang['salary']['from'] * 1.2
-                elif not lang['salary']['from']:
-                    salary += lang['salary']['to'] * 0.8 
-            if not lang['salary']['currency'] == 'RUR':
+            if payment['salary']['currency'] == 'RUR':
+                if payment['salary']['to'] and payment['salary']['from']:
+                    salary += (payment['salary']['to'] + payment['salary']['from'])/2
+                elif not payment['salary']['to']:
+                    salary += payment['salary']['from'] * 1.2
+                elif not payment['salary']['from']:
+                    salary += payment['salary']['to'] * 0.8 
+            if not payment['salary']['currency'] == 'RUR':
                 non_RUR += 1
         except TypeError:
             pass
     return [salary, non_RUR]
 
 
-def hh_data():
-    lang_list = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
-    lang_stat = {}
-    for language in lang_list:
-        vacancies = found_vacancies(language)
+def get_hh_base():
+    payment_list = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
+    language_base = {}
+    for language in payment_list:
+        vacancies = unload_vacancies_hh(language)
         salary_and_processed = get_salary_RUR_hh(vacancies[0])
         try:
-            vac_proc = vacancies[1] - salary_and_processed[1]
+            processed = vacancies[1] - salary_and_processed[1]
         except ZeroDivisionError:
-            vac_proc = vac_found
-        lang_stat.update(
+            processed = vacancies[1]
+        language_base.update(
             {language : {
                 'vacancies_found' :  vacancies[1],
-                'vacancies_processed' : vac_proc,
-                'vacancies_salary' : int(salary_and_processed[0] / vac_proc)
+                'vacancies_processed' : processed,
+                'vacancies_salary' : int(salary_and_processed[0] / processed)
                 }
             }
         )
         print(f'{language} is done')
-    return lang_stat
+    return language_base
 
 
 if __name__ == "__main__":
-    hh_data()
+    get_hh_base()

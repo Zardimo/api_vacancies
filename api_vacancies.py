@@ -1,6 +1,6 @@
 from terminaltables import AsciiTable, DoubleTable, SingleTable
-from api_vacancies_hh import hh_data
-from api_vacancies_sj import sj_data
+from api_vacancies_hh import get_hh_base
+from api_vacancies_sj import get_sj_base
 import argparse
 
 
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     parser = create_parser()
     args_namespace = parser.parse_args()
     if args_namespace.HeadHunter:
-        main(creating_table_data(hh_data()), 'HeadHunter Moscow')
+        main(creating_table_data(get_hh_base()), 'HeadHunter Moscow')
     elif args_namespace.SuperJob:
-        main(creating_table_data(sj_data()), 'SuperJob Moscow')
+        main(creating_table_data(get_sj_base()), 'SuperJob Moscow')
     else:
         print('Select job search site(-sj, -hh)')

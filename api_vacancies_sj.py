@@ -2,11 +2,11 @@ import requests
 import os
 
 
-def vacancies_sj(language):
-    secret_key = os.getenv('SECRET_KEY')
+def unload_vacancies_sj(language):
+    key_sj = os.getenv('TOKEN')
     url = 'https://api.superjob.ru/2.0/vacancies/'
     headers = {
-        'X-Api-App-Id' : secret_key
+        'X-Api-App-Id' : key_sj
     }
     params = {
         'page' : '0',
@@ -22,41 +22,41 @@ def vacancies_sj(language):
 def get_salary_RUB_sj(vacancies):
     salary = 0
     non_rub = 0
-    for cur in vacancies:
-        if cur['currency'] == 'rub': 
-            if cur['payment_from'] and cur['payment_to']:
-                salary += cur['payment_from'] + cur['payment_to'] / 2
-            if not cur['payment_to']:
-                salary += cur['payment_from'] * 1.2
-            if not cur['payment_from']:
-                salary += cur['payment_to'] * 0.8
+    for payment in vacancies:
+        if payment['paymentrency'] == 'rub': 
+            if payment['payment_from'] and payment['payment_to']:
+                salary += payment['payment_from'] + payment['payment_to'] / 2
+            if not payment['payment_to']:
+                salary += payment['payment_from'] * 1.2
+            if not payment['payment_from']:
+                salary += payment['payment_to'] * 0.8
         else:
             non_rub += 1
     return [salary, non_rub]
 
 
-def sj_data():
-    lang_list = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
-    lang_stat = {}
-    for vac in lang_list:
-        vacancies_lib = vacancies_sj(vac)
-        if vacancies_lib['total'] > 0:
+def get_sj_base():
+    language_list = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
+    language_base = {}
+    for language in language_list:
+        vacancies_base = unload_vacancies_sj(language)
+        if vacancies_base['total'] > 0:
             try:
-                vacancies_proc = vacancies_lib['total'] - get_salary_RUB_sj(vacancies_lib['objects'])[1]
+                processed = vacancies_base['total'] - get_salary_RUB_sj(vacancies_base['objects'])[1]
             except ZeroDivisionError:
-                vacancies_proc = vacancies_lib['total']
-            vacancies_sal = int(get_salary_RUB_sj(vacancies_lib['objects'])[0] / vacancies_proc)
+                processed = vacancies_base['total']
+            salary = int(get_salary_RUB_sj(vacancies_base['objects'])[0] / processed)
         else:
-            vacancies_proc = vacancies_sal = 0
-        lang_stat.update(
-        {vac : {
-            'vacancies_found' : vacancies_lib['total'],
-            'vacancies_processed' : vacancies_proc,
-            'vacancies_salary' : vacancies_sal
+            processed = salary = 0
+        language_base.update(
+        {language : {
+            'vacancies_found' : vacancies_base['total'],
+            'vacancies_processed' : processed,
+            'vacancies_salary' : salary
             }
         })
-    return lang_stat
+    return language_base
 
 
 if __name__ == '__main__':
-    sj_data()
+    get_sj_base()
