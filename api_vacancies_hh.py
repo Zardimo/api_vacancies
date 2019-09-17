@@ -2,7 +2,7 @@ import requests
 from itertools import count
 
 
-def unload_vacancies_hh(language):
+def job_unloading_hh(language):
     all_pages = []
     url = 'https://api.hh.ru/vacancies/'
     for page in count():
@@ -24,45 +24,51 @@ def unload_vacancies_hh(language):
     return [all_pages, found]
 
 
-def get_salary_RUR_hh(vacancies):
+def summ_salary(salary_to, salary_from):
+    if salary_to and salary_from:
+        salary = (salary_to + salary_from)/2
+    elif not salary_to:
+        salary = salary_from * 1.2
+    elif not salary_from:
+        salary = salary_to * 0.8
+    return salary
+
+
+
+def get_salary(vacancies, site):
     salary = 0
-    non_RUR = 0
-    for payment in vacancies:
-        try:
-            if payment['salary']['currency'] == 'RUR':
-                if payment['salary']['to'] and payment['salary']['from']:
-                    salary += (payment['salary']['to'] + payment['salary']['from'])/2
-                elif not payment['salary']['to']:
-                    salary += payment['salary']['from'] * 1.2
-                elif not payment['salary']['from']:
-                    salary += payment['salary']['to'] * 0.8 
-            if not payment['salary']['currency'] == 'RUR':
-                non_RUR += 1
-        except TypeError:
-            pass
-    return [salary, non_RUR]
+    RUR = 0
+    for vacancy in vacancies:
+        if site == 'hh':
+            try:
+                if vacancy['salary']['currency'] == 'RUR':
+                    RUR += 1
+                    salary += summ_salary(vacancy['salary']['to'], vacancy['salary']['from'])
+            except TypeError:
+                pass
+        else:
+            if vacancy['currency'] == 'rub': 
+                RUR += 1
+                salary += summ_salary(vacancy['payment_to'], vacancy['payment_from'])
+    return [salary, RUR]
 
 
-def get_hh_base():
-    payment_list = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
-    language_base = {}
-    for language in payment_list:
-        vacancies = unload_vacancies_hh(language)
-        salary_and_processed = get_salary_RUR_hh(vacancies[0])
-        try:
-            processed = vacancies[1] - salary_and_processed[1]
-        except ZeroDivisionError:
-            processed = vacancies[1]
-        language_base.update(
+def get_hh_base(site):
+    languages = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
+    Data_on_languages_for_table_hh = {}
+    for language in languages:
+        vacancies, found_vacancies = job_unloading_hh(language)
+        salary, processed = get_salary(vacancies, site)
+        Data_on_languages_for_table_hh.update(
             {language : {
-                'vacancies_found' :  vacancies[1],
+                'vacancies_found' :  found_vacancies,
                 'vacancies_processed' : processed,
-                'vacancies_salary' : int(salary_and_processed[0] / processed)
+                'vacancies_salary' : int(salary / processed)
                 }
             }
         )
         print(f'{language} is done')
-    return language_base
+    return Data_on_languages_for_table_hh
 
 
 if __name__ == "__main__":
