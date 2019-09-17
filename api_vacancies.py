@@ -13,26 +13,26 @@ def create_parser():
     return parser
 
 
-def main(TABLE_DATA, title):
-    table_instance = SingleTable(TABLE_DATA, title)
+def main(table_data, title):
+    table_instance = SingleTable(table_data, title)
     table_instance.justify_columns[2] = 'right'
     print(table_instance.table)
 
 
-def creating_table_data(data):
-    TABLE_DATA = ()
-    TABLE_DATA += ('Язык Программирования', 'Ваканский найдено', 'Вакансий обработано', 'Средняя зарплата'),
+def prepare_data_for_the_table(data):
+    table_data = ()
+    table_data += ('Язык Программирования', 'Ваканский найдено', 'Вакансий обработано', 'Средняя зарплата'),
     for lang_data in data:
-        TABLE_DATA += (lang_data, data[lang_data]['vacancies_found'], data[lang_data]['vacancies_processed'], data[lang_data]['vacancies_salary']),
-    return TABLE_DATA
+        table_data += (lang_data, data[lang_data]['vacancies_found'], data[lang_data]['vacancies_processed'], data[lang_data]['vacancies_salary']),
+    return table_data
 
 
 if __name__ == '__main__':
     parser = create_parser()
     args_namespace = parser.parse_args()
     if args_namespace.HeadHunter:
-        main(creating_table_data(get_hh_base()), 'HeadHunter Moscow')
+        main(prepare_data_for_the_table(get_hh_base('hh')), 'HeadHunter Moscow')
     elif args_namespace.SuperJob:
-        main(creating_table_data(get_sj_base()), 'SuperJob Moscow')
+        main(prepare_data_for_the_table(get_sj_base('sj')), 'SuperJob Moscow')
     else:
         print('Select job search site(-sj, -hh)')
