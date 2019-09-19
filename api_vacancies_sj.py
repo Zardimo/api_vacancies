@@ -20,25 +20,27 @@ def job_unloading_sj(language):
     return response.json()
 
 
-def get_sj_base(site):
-    languages = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
-    Data_on_languages_for_table_sj = {}
+def main(site):
+    languages = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript',
+        'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
+    data_on_languages_for_table_sj = {}
     for language in languages:
         vacancies_base = job_unloading_sj(language)
         if vacancies_base['total'] > 0:
-            salary_vacancies, processed = get_salary(vacancies_base['objects'], site)
+            salary_vacancies, processed = get_salary(
+                vacancies_base['objects'], site)
             salary = int(salary_vacancies / processed)
         else:
             processed = salary = 0
-        Data_on_languages_for_table_sj.update(
+        data_on_languages_for_table_sj.update(
         {language : {
             'vacancies_found' : vacancies_base['total'],
             'vacancies_processed' : processed,
             'vacancies_salary' : salary
             }
         })
-    return Data_on_languages_for_table_sj
+    return data_on_languages_for_table_sj
 
 
 if __name__ == '__main__':
-    get_sj_base()
+    main()

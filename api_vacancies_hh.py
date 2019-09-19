@@ -37,29 +37,32 @@ def summ_salary(salary_to, salary_from):
 
 def get_salary(vacancies, site):
     salary = 0
-    RUR = 0
+    rur = 0
     for vacancy in vacancies:
         if site == 'hh':
             try:
                 if vacancy['salary']['currency'] == 'RUR':
-                    RUR += 1
-                    salary += summ_salary(vacancy['salary']['to'], vacancy['salary']['from'])
+                    rur += 1
+                    salary += summ_salary(
+                        vacancy['salary']['to'], vacancy['salary']['from'])
             except TypeError:
                 pass
         else:
             if vacancy['currency'] == 'rub': 
-                RUR += 1
-                salary += summ_salary(vacancy['payment_to'], vacancy['payment_from'])
-    return [salary, RUR]
+                rur += 1
+                salary += summ_salary(
+                    vacancy['payment_to'], vacancy['payment_from'])
+    return [salary, rur]
 
 
-def get_hh_base(site):
-    languages = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript', 'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
-    Data_on_languages_for_table_hh = {}
+def main(site):
+    languages = ['C++', 'Python', 'Java', 'Ruby', 'C', 'C#', 'JavaScript',
+        'PHP', 'Typescript', 'Objective-C', 'Scala', 'Swift', 'Go']
+    data_on_languages_for_table_sj = {}
     for language in languages:
         vacancies, found_vacancies = job_unloading_hh(language)
         salary, processed = get_salary(vacancies, site)
-        Data_on_languages_for_table_hh.update(
+        data_on_languages_for_table_sj.update(
             {language : {
                 'vacancies_found' :  found_vacancies,
                 'vacancies_processed' : processed,
@@ -68,8 +71,8 @@ def get_hh_base(site):
             }
         )
         print(f'{language} is done')
-    return Data_on_languages_for_table_hh
+    return data_on_languages_for_table_sj
 
 
 if __name__ == "__main__":
-    get_hh_base()
+    main('hh')
